@@ -1,32 +1,14 @@
-# First stage: Build the Go application
+# Build stage
 FROM golang:1.22 AS builder
-
-# Set the Current Working Directory inside the container
 WORKDIR /app
-
-# Copy go mod file
 COPY go.mod ./
-
-# Download all dependencies. Dependencies will be cached if the go.mod file is not changed
 RUN go mod download
-
-# Copy the source from the current directory to the Working Directory inside the container
 COPY . .
-
-# Build the Go app
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o app .
 
-# Second stage: Create a small image for the application
+# Run stage
 FROM alpine:latest
-
-# Set the Current Working Directory inside the container
 WORKDIR /root/
-
-# Copy the binary from the builder stage
 COPY --from=builder /app/app .
-
-# Expose port if needed (e.g., 8080)
-# EXPOSE 8080
-
-# Command to run the executable
+RUN chmod +x ./app
 CMD ["./app"]
